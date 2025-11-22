@@ -19,7 +19,7 @@ export async function saveSearch(userId, bookTitle, booksNumber) {
 
 }
 
-export async function remoceSearch(id) {
+export async function removeSearch(id) {
     return await supabaseClientService.from(watchlistTable).delete().eq("id", id);
 }
 

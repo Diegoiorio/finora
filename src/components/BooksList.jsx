@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getBooksNumber } from "../services/booksProviderService";
-import { saveSearch } from "../services/supabaseWatchlistService";
+import { saveSearch, fetchSearch, removeSearch } from "../services/supabaseWatchlistService";
 
 export default function BooksList({userId}) {
 
     const [bookTitle, setBookTitle] = useState("");
     const [booksNumber, setBooksNumber] = useState("");
     const [error, setError] = useState("");
+    const [booksNumbers, setBooksNumbers] = useState([]);
     const [loading, setLoading] = useState(false);
 
     async function handleAddBookList(e) {
@@ -27,13 +28,54 @@ export default function BooksList({userId}) {
             setBooksNumber(booksNumber);
             setLoading(false)
 
-            saveSearch(userId, bookTitle, booksNumber);
+            await saveSearch(userId, bookTitle, booksNumber);
+
+            setBookTitle("");
+            handleFetchSearch();
 
         } catch {
             setError("Error occurred");
         }
     }
 
+    async function handleDeleteSearch(id) {
+        await removeSearch(id);
+        handleFetchSearch();
+    }
+
+    async function handleFetchSearch() {
+        const data = await fetchSearch(userId);
+        setBooksNumbers(data);
+    }
+
+    async function loadSearches() {
+        const updated = await new Promise.all(
+            booksNumbers.map(async bookNumber => ({
+                ...bookNumber,
+                number: await getBooksNumber(bookNumber.title)
+            }))
+        )
+
+        setBooksNumbers(updated);
+    }
+
+    // Load initial fetch data
+    useEffect(() => {
+        console.log("executed!");
+        if(userId) {
+           handleFetchSearch()
+        }
+        console.log(booksNumbers);
+    }, [userId]);
+
+    // Load data after update
+    useEffect(() => {
+        if(booksNumbers.length) {
+            loadSearches()
+        }
+    }, [booksNumbers.length]);
+
+    
     return (<div>
         <form className="stock-form" onSubmit={handleAddBookList}>
             <input 
@@ -43,7 +85,7 @@ export default function BooksList({userId}) {
             />
 
             <button type="submit">
-                Check
+                Search
             </button>
 
             {(loading && !error && !booksNumber) && (
@@ -60,5 +102,23 @@ export default function BooksList({userId}) {
                 </p>
             )}
         </form>
+
+        <ul className="stock-list">
+            { booksNumbers &&
+                booksNumbers.map(bookNumber => (
+                    <li key={bookNumber.id}>
+                        <span>
+                            <strong>{bookNumber.title}</strong>
+                            <span style={{color: bookNumber.books_number > 100 ? "green" : "orange"}}>{bookNumber.books_number}</span>
+                        </span>
+
+                        <button className="remove-btn" onClick={() => handleDeleteSearch(bookNumber.id)}>
+                            X
+                        </button>
+                    </li>
+                ))
+            }
+        </ul>
+
     </div>)
 }
