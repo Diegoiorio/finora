@@ -50,11 +50,9 @@ export default function BooksList({userId}) {
 
     // Load initial fetch data
     useEffect(() => {
-        console.log("executed!");
         if(userId) {
            handleFetchSearch()
         }
-        console.log(booksNumbers);
     }, [userId]);
 
     
