@@ -48,17 +48,6 @@ export default function BooksList({userId}) {
         setBooksNumbers(data);
     }
 
-    async function loadSearches() {
-        const updated = await new Promise.all(
-            booksNumbers.map(async bookNumber => ({
-                ...bookNumber,
-                number: await getBooksNumber(bookNumber.title)
-            }))
-        )
-
-        setBooksNumbers(updated);
-    }
-
     // Load initial fetch data
     useEffect(() => {
         console.log("executed!");
@@ -67,13 +56,6 @@ export default function BooksList({userId}) {
         }
         console.log(booksNumbers);
     }, [userId]);
-
-    // Load data after update
-    useEffect(() => {
-        if(booksNumbers.length) {
-            loadSearches()
-        }
-    }, [booksNumbers.length]);
 
     
     return (<div>
@@ -109,7 +91,7 @@ export default function BooksList({userId}) {
                     <li key={bookNumber.id}>
                         <span>
                             <strong>{bookNumber.title}</strong>
-                            <span style={{color: bookNumber.books_number > 100 ? "green" : "orange"}}>{bookNumber.books_number}</span>
+                            <span className="book-number" style={{color: bookNumber.books_number > 100 ? "green" : "orange"}}>{bookNumber.books_number}</span>
                         </span>
 
                         <button className="remove-btn" onClick={() => handleDeleteSearch(bookNumber.id)}>
